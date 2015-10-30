@@ -1,0 +1,154 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../firebase-element/firebase-collection.html">
+<link rel="import" href="../swipe-action/swipe-action.html">
+
+<!--
+An element displaying syncronized datalist from Firebase. By swiping each item left or right you can vote it up or down the list.
+
+Example:
+
+    <swipe-list></swipe-list>
+
+@group Swipe list
+@element swipe-list
+@demo demo/index.html
+-->
+
+<dom-module id="swipe-list">
+  <template>
+    <style>
+      paper-item {
+        border-bottom: 1px solid var(--divider-color);
+      }
+      .list-container {
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+          padding: 18px 10px;
+      }
+      .list-thumb {
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+          align-items: center;
+          margin-right: 20px;
+      }
+      .list-thumb span {
+        
+      }
+      .list-content {
+          -moz-box-flex: 1;
+          -webkit-box-flex: 1;
+          flex: 1 1 auto;
+      }
+      .list-message{
+          line-height: 1.4;
+          word-break: break-all;
+          word-wrap: break-word;
+      }
+      .list-info {
+          display: -ms-flexbox;
+          display: -webkit-flex;
+          display: flex;
+          color: #abafb8;
+          font-size: 10px;
+          margin-top: 4px;
+      }
+      .list-info iron-icon {
+        width: 12px;
+        height: 12px;
+        padding: 0 4px;
+      }
+      paper-button.custom > core-icon {
+          margin: 0 4px 2px 0px;
+      }
+      swipe-action[disabled] {
+        color: #999;
+      }
+    </style>
+    <firebase-collection  id="firebaseCollection" 
+                          data="{{videos}}"
+                          location="{{firebaseLocation}}"
+                          order-by-child="score" log="true">
+    </firebase-collection>
+    
+    <div id="list_example">
+      <div class="separator"></div>
+        <template is="dom-repeat" items="[[videos]]">
+<!--           <div class="list-container">
+            <div class="list-thumb">
+              <span>[[computeScore(item.score)]]</span>
+            </div>
+            <div class="list-content">
+              <div class="list-message">[[item.snippet.title]]</div>
+            </div>
+          </div> -->
+          <swipe-action shadow offset="40" on-swipe-left="voteDown" on-swipe-right="voteUp">
+              <div class="list-container">
+                  <div class="list-thumb">
+                    <span>[[computeScore(item.score)]]</span>
+                  </div>
+                  <div class="list-content">
+                    <div class="list-message">[[item.snippet.title]]</div>
+                  </div>
+              </div>
+              <swipe-action-icon class="left">
+                <iron-icon icon="thumb-down"></iron-icon>
+              </swipe-action-icon>
+              <swipe-action-icon class="right">
+                <iron-icon icon="thumb-up"></iron-icon>
+              </swipe-action-icon>
+          </swipe-action>
+
+        </template>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'swipe-list',
+
+      properties: {
+       
+      },
+
+      voteUp: function(e){
+        var ref = this.$.firebaseCollection.query.ref();
+        var target = ref.child(e.model.item.__firebaseKey__);
+        target.update({'voteup': (e.model.item.voteup || 0) + 1, 'score': (e.model.item.score || 0) - 1});
+        e.target.setAttribute('disabled', true);
+      },
+      voteDown: function(e){
+        var ref = this.$.firebaseCollection.query.ref();
+        var target = ref.child(e.model.item.__firebaseKey__);
+        target.update({'votedown': (e.model.item.votedown || 0) + 1, 'score': (e.model.item.score || 0) + 1});
+        e.target.setAttribute('disabled', true);
+      },
+      removeTrackFromQueue: function(key) {
+        this.$.firebaseCollection.removeByKey(key);
+      },
+      handleStatePlayerChange: function(ev) {
+        this.events.push({data: ev.detail.data});
+        if (ev.detail.data === 0) { //video ended
+          this.removeTrackFromQueue(this.videos[0].__firebaseKey__);
+          this.playNextTrack();
+        }
+      },
+      computeScore: function(score) {
+        return 1000 - score;
+      }
+    });
+  </script>
+</dom-module>
