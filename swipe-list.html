@@ -43,6 +43,7 @@ Example:
           display: flex;
           align-items: center;
           margin-right: 20px;
+          color: #000000;
       }
       .list-thumb span {
         
@@ -56,6 +57,7 @@ Example:
           line-height: 1.4;
           word-break: break-all;
           word-wrap: break-word;
+          color: #000000;
       }
       .list-info {
           display: -ms-flexbox;
@@ -80,7 +82,7 @@ Example:
     <firebase-collection  id="firebaseCollection" 
                           data="{{videos}}"
                           location="{{firebaseLocation}}"
-                          order-by-child="score" log="true">
+                          order-by-child="score">
     </firebase-collection>
     
     <div id="list_example">
